@@ -9,7 +9,7 @@ import './utils/marked.min.js';
 
 const fastify = Fastify({logger: true});
 
-const PORT = 5757;
+const PORT = process.env.PORT || 5757;;
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 console.log('__dirname:', __dirname);
 // 配置目标目录
