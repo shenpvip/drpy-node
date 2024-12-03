@@ -20,28 +20,28 @@ console.log('indexFilePath:', indexFilePath);
 
 // 添加 / 接口
 fastify.get('/', async (request, reply) => {
-    let readmePath = null;
+    // let readmePath = null;
 
-    // 查找根目录下的 README.md 文件（不区分大小写）
-    const files = readdirSync(__dirname);
-    for (const file of files) {
-        if (/^readme\.md$/i.test(file)) {
-            readmePath = path.join(__dirname, file);
-            break;
-        }
-    }
+    // // 查找根目录下的 README.md 文件（不区分大小写）
+    // const files = readdirSync(__dirname);
+    // for (const file of files) {
+    //     if (/^readme\.md$/i.test(file)) {
+    //         readmePath = path.join(__dirname, file);
+    //         break;
+    //     }
+    // }
 
-    // 如果未找到 README.md 文件
-    if (!readmePath) {
-        reply.code(404).send('<h1>README.md not found</h1>');
-        return;
-    }
+    // // 如果未找到 README.md 文件
+    // if (!readmePath) {
+    //     reply.code(404).send('<h1>README.md not found</h1>');
+    //     return;
+    // }
 
-    // 读取 README.md 文件内容
-    const markdownContent = readFileSync(readmePath, 'utf-8');
+    // // 读取 README.md 文件内容
+    // const markdownContent = readFileSync(readmePath, 'utf-8');
 
-    // 将 Markdown 转换为 HTML
-    const htmlContent = marked.parse(markdownContent);
+    // // 将 Markdown 转换为 HTML
+    // const htmlContent = marked.parse(markdownContent);
 
     // 返回 HTML 内容
     reply.type('text/html').send(`
@@ -53,7 +53,7 @@ fastify.get('/', async (request, reply) => {
                     <title>README</title>
                 </head>
                 <body>
-                    ${htmlContent}
+                    222
                 </body>
                 </html>
             `);
