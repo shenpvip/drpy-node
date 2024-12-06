@@ -9,7 +9,7 @@ import * as misc from '../utils/misc.js';
 // const { req } = await import('../utils/req.js');
 import {gbkTool} from '../libs_drpy/gbk.js'
 // import {atob, btoa, base64Encode, base64Decode, md5} from "../libs_drpy/crypto-util.js";
-import { base64Encode, base64Decode, md5} from "../libs_drpy/crypto-util.js";
+import {base64Encode, base64Decode, md5} from "../libs_drpy/crypto-util.js";
 import template from '../libs_drpy/template.js'
 import '../libs_drpy/abba.js'
 import '../libs_drpy/drpyInject.js'
@@ -22,9 +22,10 @@ import '../libs_drpy/jinja.js'
 // import '../libs_drpy/jsonpathplus.min.js'
 import '../libs_drpy/drpyCustom.js'
 import '../libs_drpy/moduleLoader.js'
+// import '../libs_drpy/crypto-js-wasm.js'
 
-globalThis.misc = misc
-globalThis.utils = utils
+globalThis.misc = misc;
+globalThis.utils = utils;
 const {sleep, sleepSync, computeHash, deepCopy, urljoin, urljoin2, joinUrl} = utils;
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const es6JsPath = path.join(__dirname, '../libs_drpy/es6-extend.js');
@@ -32,15 +33,48 @@ const es6JsPath = path.join(__dirname, '../libs_drpy/es6-extend.js');
 const es6_extend_code = readFileSync(es6JsPath, 'utf8');
 // 缓存已初始化的模块和文件 hash 值
 const moduleCache = new Map();
+let pupWebview = null;
+if (typeof fetchByHiker === 'undefined') { // 判断是海阔直接放弃导入puppeteer
+    try {
+        // 尝试动态导入模块puppeteerHelper
+        const {puppeteerHelper} = await import('../utils/headless-util.js');  // 使用动态 import
+        pupWebview = new puppeteerHelper();
+        console.log('puppeteerHelper imported successfully');
+    } catch (error) {
+        // console.error('Failed to import puppeteerHelper:', error);
+        console.error(`Failed to import puppeteerHelper:${error.message}`);
+    }
+}
+globalThis.pupWebview = pupWebview;
+try {
+    if (typeof fetchByHiker === 'undefined') {
+        await import('../libs_drpy/crypto-js-wasm.js'); // 使用动态 import规避海阔报错无法运行问题
+    } else {
+        await globalThis.import('../libs_drpy/crypto-js-wasm.js'); // 海阔放在globalThis里去动态引入
+    }
+    globalThis.CryptoJSW = CryptoJSWasm;
+} catch (error) {
+    // console.error('Failed to import puppeteerHelper:', error);
+    console.error(`Failed to import CryptoJSWasm:${error.message}`);
+    globalThis.CryptoJSW = {
+        loadAllWasm: async function () {
+        },
+        MD5: async function (str) {
+            return md5(str)
+        },
+    };
+}
+
 
 /**
  * 初始化模块：加载并执行模块文件，存储初始化后的 rule 对象
  * 如果存在 `预处理` 属性且为函数，会在缓存前执行
  * @param {string} filePath - 模块文件路径
+ * @param env
  * @param refresh 强制清除缓存
  * @returns {Promise<object>} - 返回初始化后的模块对象
  */
-export async function init(filePath, refresh) {
+export async function init(filePath, env, refresh) {
     try {
         // 读取文件内容
         const fileContent = await readFile(filePath, 'utf-8');
@@ -55,6 +89,11 @@ export async function init(filePath, refresh) {
                 return cached.moduleObject;
             }
         }
+        const {getProxyUrl} = env;
+        // console.log('env:',env);
+        // console.log('getProxyUrl:',getProxyUrl);
+        // (可选) 加载所有 wasm 文件
+        await CryptoJSW.loadAllWasm();
 
         log(`Loading module: ${filePath}`);
         let t1 = utils.getNowTime();
@@ -71,6 +110,8 @@ export async function init(filePath, refresh) {
             MOBILE_UA, PC_UA, UA, UC_UA, IOS_UA, nodata,
             setResult,
             $,
+            pupWebview,
+            getProxyUrl,
         };
         const drpySanbox = {
             jsp,
@@ -100,6 +141,7 @@ export async function init(filePath, refresh) {
             cut,
             gbkTool,
             CryptoJS,
+            CryptoJSW,
             JSEncrypt,
             NODERSA,
             pako,
@@ -137,11 +179,13 @@ export async function init(filePath, refresh) {
         polyfillsScript.runInContext(context);
 
         // 执行文件内容，将其放入沙箱中
-        const script = new vm.Script(fileContent);
+        const js_code = getOriginalJs(fileContent);
+        const script = new vm.Script(js_code);
         script.runInContext(context);
 
-        // 访问沙箱中的 rule 对象
-        const moduleObject = utils.deepCopy(sandbox.rule);
+        // 访问沙箱中的 rule 对象。不进行deepCopy了,避免初始化或者预处理对rule.xxx进行修改后，在其他函数里使用却没生效问题
+        // const moduleObject = utils.deepCopy(sandbox.rule);
+        const moduleObject = sandbox.rule;
         await initParse(moduleObject);
 
         // 检查并执行 `预处理` 方法
@@ -152,13 +196,14 @@ export async function init(filePath, refresh) {
 
         let t2 = utils.getNowTime();
         moduleObject.cost = t2 - t1;
+        // console.log(`${filePath} headers:`, moduleObject.headers);
 
         // 缓存模块和文件的 hash 值
         moduleCache.set(filePath, {moduleObject, hash: fileHash});
         return moduleObject;
     } catch (error) {
         console.error('Error in drpy.init:', error);
-        throw new Error('Failed to initialize module');
+        throw new Error(`Failed to initialize module:${error.message}`);
     }
 }
 
@@ -181,7 +226,7 @@ async function invokeWithInjectVars(rule, method, injectVars, args) {
     let result = await method.apply(injectVars, args);  // 使用 apply 临时注入 injectVars 作为上下文，并执行方法
     switch (injectVars['method']) {
         case 'class_parse':
-            result = await homeParseAfter(result,rule.类型);
+            result = await homeParseAfter(result, rule.类型);
             break;
         case '一级':
             result = await cateParseAfter(result, args[1]);
@@ -202,13 +247,14 @@ async function invokeWithInjectVars(rule, method, injectVars, args) {
 /**
  * 调用模块的指定方法
  * @param {string} filePath - 模块文件路径
+ * @param env 全局的环境变量-针对本规则，如代理地址
  * @param {string} method - 要调用的属性方法名称
  * @param args - 传递给方法的普通参数
  * @param {object} injectVars - 需要注入的变量（如 input 和 MY_URL）
  * @returns {Promise<any>} - 方法调用的返回值
  */
-async function invokeMethod(filePath, method, args = [], injectVars = {}) {
-    const moduleObject = await init(filePath); // 确保模块已初始化
+async function invokeMethod(filePath, env, method, args = [], injectVars = {}) {
+    const moduleObject = await init(filePath, env); // 确保模块已初始化
     switch (method) {
         case '一级':
             injectVars = await cateParse(moduleObject, ...args);
@@ -234,9 +280,18 @@ async function invokeMethod(filePath, method, args = [], injectVars = {}) {
                 return {}
             }
             break;
+        case 'proxy_rule':
+            injectVars = await proxyParse(moduleObject, ...args);
+            if (!injectVars) {
+                return {}
+            }
+            break;
     }
     injectVars['method'] = method;
+    // 环境变量扩展进入this区域
+    Object.assign(injectVars, env);
     if (moduleObject[method] && typeof moduleObject[method] === 'function') {
+        // console.log('injectVars:', injectVars);
         return await invokeWithInjectVars(moduleObject, moduleObject[method], injectVars, args);
     } else {
         throw new Error(`Method ${method} not found in module ${filePath}`);
@@ -308,6 +363,7 @@ async function initParse(rule) {
                     console.log(v);
                     if (['MOBILE_UA', 'PC_UA', 'UC_UA', 'IOS_UA', 'UA'].includes(v)) {
                         rule.headers[k] = eval(v);
+                        log(rule.headers[k])
                     }
                 } else if (k.toLowerCase() === 'cookie') {
                     let v = rule.headers[k];
@@ -333,7 +389,7 @@ async function initParse(rule) {
 }
 
 async function homeParseAfter(d, _type) {
-    d.type = _type||'影视';
+    d.type = _type || '影视';
     return d
 }
 
@@ -564,47 +620,171 @@ async function playParseAfter(rule, obj, playUrl, flag) {
     return lazy_play
 }
 
-export async function home(filePath, filter = 1) {
-    return await invokeMethod(filePath, 'class_parse', [filter], {
+async function proxyParse(rule, params) {
+    // log('proxyParse:', params);
+    return {
+        TYPE: 'proxy',
+        input: params.url || '',
+        MY_URL: params.url || '',
+    }
+}
+
+export async function home(filePath, env, filter = 1) {
+    return await invokeMethod(filePath, env, 'class_parse', [filter], {
         input: '$.homeUrl',
         MY_URL: '$.homeUrl'
     });
 }
 
-export async function homeVod(filePath) {
-    return await invokeMethod(filePath, '推荐', [], {
+export async function homeVod(filePath, env) {
+    return await invokeMethod(filePath, env, '推荐', [], {
         input: '$.homeUrl',
         MY_URL: '$.homeUrl'
     });
 }
 
-export async function cate(filePath, tid, pg = 1, filter = 1, extend = {}) {
-    return await invokeMethod(filePath, '一级', [tid, pg, filter, extend], {
+export async function cate(filePath, env, tid, pg = 1, filter = 1, extend = {}) {
+    return await invokeMethod(filePath, env, '一级', [tid, pg, filter, extend], {
         input: '$.url',
         MY_URL: '$.url'
     });
 }
 
-export async function detail(filePath, ids) {
+export async function detail(filePath, env, ids) {
     if (!Array.isArray(ids)) throw new Error('Parameter "ids" must be an array');
-    return await invokeMethod(filePath, '二级', [ids], {
+    return await invokeMethod(filePath, env, '二级', [ids], {
         input: `${ids[0]}`,
         MY_URL: `${ids[0]}`
     });
 }
 
-export async function search(filePath, wd, quick = 0, pg = 1) {
-    return await invokeMethod(filePath, '搜索', [wd, quick, pg], {
+export async function search(filePath, env, wd, quick = 0, pg = 1) {
+    return await invokeMethod(filePath, env, '搜索', [wd, quick, pg], {
         input: '$.searchUrl',
         MY_URL: '$.searchUrl'
     });
 }
 
-export async function play(filePath, flag, id, flags) {
+export async function play(filePath, env, flag, id, flags) {
     flags = flags || [];
     if (!Array.isArray(flags)) throw new Error('Parameter "flags" must be an array');
-    return await invokeMethod(filePath, 'lazy', [flag, id, flags], {
+    return await invokeMethod(filePath, env, 'lazy', [flag, id, flags], {
         input: `${id}`,
         MY_URL: `${id}`,
     });
 }
+
+export async function proxy(filePath, env, params) {
+    params = params || {};
+    try {
+        return await invokeMethod(filePath, env, 'proxy_rule', [deepCopy(params)], {
+            input: `${params.url}`,
+            MY_URL: `${params.url}`,
+        });
+    } catch (e) {
+        return [500, 'text/plain', '代理规则错误:' + e.message]
+    }
+}
+
+/**
+ * 获取加密前的原始的js源文本
+ * @param js_code
+ */
+export function getOriginalJs(js_code) {
+    let current_match = /var rule|[\u4E00-\u9FA5]+|function|let |var |const |\(|\)|"|'/;
+    if (current_match.test(js_code)) {
+        return js_code
+    }
+    let rsa_private_key = 'MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCqin/jUpqM6+fgYP/oMqj9zcdHMM0mEZXLeTyixIJWP53lzJV2N2E3OP6BBpUmq2O1a9aLnTIbADBaTulTNiOnVGoNG58umBnupnbmmF8iARbDp2mTzdMMeEgLdrfXS6Y3VvazKYALP8EhEQykQVarexR78vRq7ltY3quXx7cgI0ROfZz5Sw3UOLQJ+VoWmwIxu9AMEZLVzFDQN93hzuzs3tNyHK6xspBGB7zGbwCg+TKi0JeqPDrXxYUpAz1cQ/MO+Da0WgvkXnvrry8NQROHejdLVOAslgr6vYthH9bKbsGyNY3H+P12kcxo9RAcVveONnZbcMyxjtF5dWblaernAgMBAAECggEAGdEHlSEPFmAr5PKqKrtoi6tYDHXdyHKHC5tZy4YV+Pp+a6gxxAiUJejx1hRqBcWSPYeKne35BM9dgn5JofgjI5SKzVsuGL6bxl3ayAOu+xXRHWM9f0t8NHoM5fdd0zC3g88dX3fb01geY2QSVtcxSJpEOpNH3twgZe6naT2pgiq1S4okpkpldJPo5GYWGKMCHSLnKGyhwS76gF8bTPLoay9Jxk70uv6BDUMlA4ICENjmsYtd3oirWwLwYMEJbSFMlyJvB7hjOjR/4RpT4FPnlSsIpuRtkCYXD4jdhxGlvpXREw97UF2wwnEUnfgiZJ2FT/MWmvGGoaV/CfboLsLZuQKBgQDTNZdJrs8dbijynHZuuRwvXvwC03GDpEJO6c1tbZ1s9wjRyOZjBbQFRjDgFeWs9/T1aNBLUrgsQL9c9nzgUziXjr1Nmu52I0Mwxi13Km/q3mT+aQfdgNdu6ojsI5apQQHnN/9yMhF6sNHg63YOpH+b+1bGRCtr1XubuLlumKKscwKBgQDOtQ2lQjMtwsqJmyiyRLiUOChtvQ5XI7B2mhKCGi8kZ+WEAbNQcmThPesVzW+puER6D4Ar4hgsh9gCeuTaOzbRfZ+RLn3Aksu2WJEzfs6UrGvm6DU1INn0z/tPYRAwPX7sxoZZGxqML/z+/yQdf2DREoPdClcDa2Lmf1KpHdB+vQKBgBXFCVHz7a8n4pqXG/HvrIMJdEpKRwH9lUQS/zSPPtGzaLpOzchZFyQQBwuh1imM6Te+VPHeldMh3VeUpGxux39/m+160adlnRBS7O7CdgSsZZZ/dusS06HAFNraFDZf1/VgJTk9BeYygX+AZYu+0tReBKSs9BjKSVJUqPBIVUQXAoGBAJcZ7J6oVMcXxHxwqoAeEhtvLcaCU9BJK36XQ/5M67ceJ72mjJC6/plUbNukMAMNyyi62gO6I9exearecRpB/OGIhjNXm99Ar59dAM9228X8gGfryLFMkWcO/fNZzb6lxXmJ6b2LPY3KqpMwqRLTAU/zy+ax30eFoWdDHYa4X6e1AoGAfa8asVGOJ8GL9dlWufEeFkDEDKO9ww5GdnpN+wqLwePWqeJhWCHad7bge6SnlylJp5aZXl1+YaBTtOskC4Whq9TP2J+dNIgxsaF5EFZQJr8Xv+lY9lu0CruYOh9nTNF9x3nubxJgaSid/7yRPfAGnsJRiknB5bsrCvgsFQFjJVs=';
+    let decode_content = '';
+
+    function aes_decrypt(data) {
+        let key = CryptoJS.enc.Hex.parse("686A64686E780A0A0A0A0A0A0A0A0A0A");
+        let iv = CryptoJS.enc.Hex.parse("647A797964730A0A0A0A0A0A0A0A0A0A");
+        let encrypted = CryptoJS.AES.decrypt({
+            ciphertext: CryptoJS.enc.Base64.parse(data)
+        }, key, {
+            iv: iv,
+            mode: CryptoJS.mode.CBC,
+            padding: CryptoJS.pad.Pkcs7
+        }).toString(CryptoJS.enc.Utf8);
+        return encrypted;
+    }
+
+    let error_log = false;
+
+    function logger(text) {
+        if (error_log) {
+            log(text);
+        }
+    }
+
+    let decode_funcs = [
+        (text) => {
+            try {
+                return ungzip(text)
+            } catch (e) {
+                logger('非gzip加密');
+                return ''
+            }
+        },
+        (text) => {
+            try {
+                return base64Decode(text)
+            } catch (e) {
+                logger('非b64加密');
+                return ''
+            }
+        },
+        (text) => {
+            try {
+                return aes_decrypt(text)
+            } catch (e) {
+                logger('非aes加密');
+                return ''
+            }
+        },
+        (text) => {
+            try {
+                return RSA.decode(text, rsa_private_key, null)
+            } catch (e) {
+                logger('非rsa加密');
+                return ''
+            }
+        },
+        // (text)=>{try {return NODERSA.decryptRSAWithPrivateKey(text, RSA.getPrivateKey(rsa_private_key).replace(/RSA /g,''), {options: {environment: "browser", encryptionScheme: 'pkcs1',b:'1024'}});} catch (e) {log(e.message);return ''}},
+    ]
+    let func_index = 0
+    while (!current_match.test(decode_content)) {
+        decode_content = decode_funcs[func_index](js_code);
+        func_index++;
+        if (func_index >= decode_funcs.length) {
+            break;
+        }
+    }
+    return decode_content
+}
+
+export const jsEncoder = {
+    base64Encode,
+    gzip,
+    aes_encrypt: function (data) {
+        // 定义密钥和初始向量，必须与解密时一致
+        let key = CryptoJS.enc.Hex.parse("686A64686E780A0A0A0A0A0A0A0A0A0A");
+        let iv = CryptoJS.enc.Hex.parse("647A797964730A0A0A0A0A0A0A0A0A0A");
+
+        // 使用AES加密
+        let encrypted = CryptoJS.AES.encrypt(data, key, {
+            iv: iv,
+            mode: CryptoJS.mode.CBC,
+            padding: CryptoJS.pad.Pkcs7
+        });
+
+        // 返回Base64编码的加密结果
+        return encrypted.ciphertext.toString(CryptoJS.enc.Base64);
+    },
+    rsa_encode: function (text) {
+        let rsa_private_key = 'MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCqin/jUpqM6+fgYP/oMqj9zcdHMM0mEZXLeTyixIJWP53lzJV2N2E3OP6BBpUmq2O1a9aLnTIbADBaTulTNiOnVGoNG58umBnupnbmmF8iARbDp2mTzdMMeEgLdrfXS6Y3VvazKYALP8EhEQykQVarexR78vRq7ltY3quXx7cgI0ROfZz5Sw3UOLQJ+VoWmwIxu9AMEZLVzFDQN93hzuzs3tNyHK6xspBGB7zGbwCg+TKi0JeqPDrXxYUpAz1cQ/MO+Da0WgvkXnvrry8NQROHejdLVOAslgr6vYthH9bKbsGyNY3H+P12kcxo9RAcVveONnZbcMyxjtF5dWblaernAgMBAAECggEAGdEHlSEPFmAr5PKqKrtoi6tYDHXdyHKHC5tZy4YV+Pp+a6gxxAiUJejx1hRqBcWSPYeKne35BM9dgn5JofgjI5SKzVsuGL6bxl3ayAOu+xXRHWM9f0t8NHoM5fdd0zC3g88dX3fb01geY2QSVtcxSJpEOpNH3twgZe6naT2pgiq1S4okpkpldJPo5GYWGKMCHSLnKGyhwS76gF8bTPLoay9Jxk70uv6BDUMlA4ICENjmsYtd3oirWwLwYMEJbSFMlyJvB7hjOjR/4RpT4FPnlSsIpuRtkCYXD4jdhxGlvpXREw97UF2wwnEUnfgiZJ2FT/MWmvGGoaV/CfboLsLZuQKBgQDTNZdJrs8dbijynHZuuRwvXvwC03GDpEJO6c1tbZ1s9wjRyOZjBbQFRjDgFeWs9/T1aNBLUrgsQL9c9nzgUziXjr1Nmu52I0Mwxi13Km/q3mT+aQfdgNdu6ojsI5apQQHnN/9yMhF6sNHg63YOpH+b+1bGRCtr1XubuLlumKKscwKBgQDOtQ2lQjMtwsqJmyiyRLiUOChtvQ5XI7B2mhKCGi8kZ+WEAbNQcmThPesVzW+puER6D4Ar4hgsh9gCeuTaOzbRfZ+RLn3Aksu2WJEzfs6UrGvm6DU1INn0z/tPYRAwPX7sxoZZGxqML/z+/yQdf2DREoPdClcDa2Lmf1KpHdB+vQKBgBXFCVHz7a8n4pqXG/HvrIMJdEpKRwH9lUQS/zSPPtGzaLpOzchZFyQQBwuh1imM6Te+VPHeldMh3VeUpGxux39/m+160adlnRBS7O7CdgSsZZZ/dusS06HAFNraFDZf1/VgJTk9BeYygX+AZYu+0tReBKSs9BjKSVJUqPBIVUQXAoGBAJcZ7J6oVMcXxHxwqoAeEhtvLcaCU9BJK36XQ/5M67ceJ72mjJC6/plUbNukMAMNyyi62gO6I9exearecRpB/OGIhjNXm99Ar59dAM9228X8gGfryLFMkWcO/fNZzb6lxXmJ6b2LPY3KqpMwqRLTAU/zy+ax30eFoWdDHYa4X6e1AoGAfa8asVGOJ8GL9dlWufEeFkDEDKO9ww5GdnpN+wqLwePWqeJhWCHad7bge6SnlylJp5aZXl1+YaBTtOskC4Whq9TP2J+dNIgxsaF5EFZQJr8Xv+lY9lu0CruYOh9nTNF9x3nubxJgaSid/7yRPfAGnsJRiknB5bsrCvgsFQFjJVs=';
+        return RSA.encode(text, rsa_private_key, null);
+    }
+};
