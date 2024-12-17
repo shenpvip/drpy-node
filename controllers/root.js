@@ -5,22 +5,25 @@ import "../utils/marked.min.js"
 export default (fastify, options, done) => {
   // 添加 / 接口
   fastify.get("/", async (request, reply) => {
-    let readmePath = path.join(options.rootDir, "README.md")
-    // const files = readdirSync(options.rootDir);
-    // // console.log(files);
-    // for (const file of files) {
-    //     if (/^readme\.md$/i.test(file)) {
-    //         readmePath = path.join(options.rootDir, file);
-    //         break;
-    //     }
-    // }
+    let readmePath = null
+    const files = readdirSync(options.rootDir)
+    // console.log(files);
+    for (const file of files) {
+      if (/^readme\.md$/i.test(file)) {
+        readmePath = path.join(options.rootDir, file)
+        break
+      }
+    }
 
-    // // 如果未找到 README.md 文件
-    // if (!readmePath) {
-    //     let fileHtml = files.map(file => `<li>${file}</li>`).join('');
-    //     reply.code(404).type('text/html;charset=utf-8').send(`<h1>README.md not found</h1><ul>${fileHtml}</ul>`);
-    //     return;
-    // }
+    // 如果未找到 README.md 文件
+    if (!readmePath) {
+      let fileHtml = files.map((file) => `<li>${file}</li>`).join("")
+      reply
+        .code(404)
+        .type("text/html;charset=utf-8")
+        .send(`<h1>README.md not found</h1><ul>${fileHtml}</ul>`)
+      return
+    }
 
     // 读取 README.md 文件内容
     const markdownContent = readFileSync(readmePath, "utf-8")
