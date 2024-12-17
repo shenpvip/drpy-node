@@ -5,7 +5,7 @@ import "../utils/marked.min.js"
 export default (fastify, options, done) => {
   // 添加 / 接口
   fastify.get("/", async (request, reply) => {
-    let readmePath = path.join(__dirname, "README.md")
+    let readmePath = path.join(options.rootDir, "README.md")
     // const files = readdirSync(options.rootDir);
     // // console.log(files);
     // for (const file of files) {
