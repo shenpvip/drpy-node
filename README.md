@@ -4,7 +4,7 @@ nodejs作为服务端的drpy实现。全面升级异步写法
 
 * [本地配置接口-动态本地](/config)
 * [本地配置接口-动态外网/局域网](/config/1)
-* [本地配置接口-静态](/index)
+* [其他配置接口-订阅过滤](/docs/sub.md)
 * [代码加解密工具](/admin/encoder)
 * [V我50支付凭证生成器](/authcoder?len=10&number=1)
 * [接口压测教程](/docs/httpTest.md)
@@ -13,11 +13,13 @@ nodejs作为服务端的drpy实现。全面升级异步写法
 
 ## 更新记录
 
-### 20241217
+### 20241225
 
-更新至V1.0.13
+更新至V1.0.21
 
-1. 配置生成逻辑优化
+1. 接口升级，支持更多协议调用
+2. 增加 `action`动作交互功能
+3. uc 和 夸克自动更新cookie
 
 [点此查看完整更新记录](docs/updateRecord.md)
 
@@ -43,6 +45,7 @@ todo:
 
 * [crypto-js-wasm使用教程](docs/crypto-js-wasm/readme-CN.md)
 * [puppeteer使用教程](docs/pupInstall.md)
+* [drpyS源属性说明](docs/ruleAttr.md)
 
 ## 问题说明
 

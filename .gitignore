@@ -130,3 +130,6 @@ dist
 .pnp.*
 /local/
 !README.md
+.idea
+/config/env.json
+/js/玩偶哥哥[盘].js

@@ -1,5 +1,94 @@
 # drpyS更新记录
 
+### 20241225
+
+更新至V1.0.21
+
+1. drpyS t4接口升级，同时支持`GET` `POST form` `POST JSON`
+2. drpyS 源增加阿里工具类 `Ali`
+3. drpyS 源增加 `_ENV`，用于获取 `process.env`
+4. drpyS 源所有函数的this变量内增加 `publicUrl`属性，可以用于获取本t4服务的公开文件目录，自行拼接静态文件
+5. 订阅里增加 `?sub=all` 的订阅，支持默认的源排序规则
+6. 增加源设置中心并置顶在订阅配置里，支持手动输入4种平台的cookie
+7. 设置中心增加青少年设置的开关，设置值为1可以彻底隐藏带密的源，无视订阅
+8. uc 和 夸克自动更新播放所需cookie
+9. 引入一个新的依赖 `dayjs`
+
+### 20241224
+
+更新至V1.0.20
+
+1. 环境变量 `/config/env.json` 不再提交到github
+2. 修改规则内各个函数的this指向，使this可以获取到rule对象的属性，也能设置属性到rule上
+3. 增加lives配置
+4. 增加drpyS可用的全局函数 `rc4Encrypt` `rc4Decrypt` `rc4` `rc4_decode`
+5. 增加随机ua生成函数 `randomUa.generateUa()`
+6. 增加一个漫画源
+7. batchFetch增加16个一组分组同步请求逻辑
+8. tv订阅允许[盘]类源
+9. 源不定义lazy默认表示嗅探选集链接
+10. 增加 `player.json` 配置一些box所需的播放器参数
+
+### 20241223
+
+更新至V1.0.19
+
+1. 更新部分源
+2. 更新扫码入库代码,支持UC扫码入库可播`闪电优汐[盘]`
+
+### 20241222
+
+更新至V1.0.18
+
+1. 修复`cookie管理工具`扫码获取夸克和UC的cookie不正确的问题，感谢 [@Hiram-Wong](https://github.com/Hiram-Wong)
+2. `COOKIE.parse` 支持列表，修复 `COOKIE.stringify` 可以直接将obj转为正确的cookie字符串，区别于 `COOKIE.serialize` 方法
+3. 夸克cookie入库自动清洗，只保留有效部分
+
+### 20241221
+
+更新至V1.0.17
+
+1. 修复`req`函数在请求错误返回的content可能存在json情况的问题
+2. 增加`ENV`对象。用于在实际过程中get和set设置系统环境变量如各种cookie
+3. 完善Cookie管理器的扫码和输入后入库功能逻辑
+4. 引入自然排序算法库解决生成的配置中源的顺序问题
+5. 海阔排序问题需要使用nodejsi18n小程序
+6. cookie入库自动去除\n
+7. 支持网盘工具
+
+### 20241220
+
+更新至V1.0.16
+
+注意事项:`axiosX` 用于请求返回的headers一般没有set-cookie或者是个字符串,因为它是esm实现
+`axios` `req` `request` `fetch` 等node实现的函数返回headers才能获取到set-cookie
+
+1. drpyS源增加可使用的函数`jsonToCookie` `cookieToJson` `axiosX`
+2. 修复素白白搜索(若网站允许),修复番薯动漫
+3. 增加 `COOKIE`对象，可以像`JSON`一样使用 `COOKIE.parse` `COOKIE.stringify`
+4. 生成的源增加自然排序
+5. 移除对海阔等环境的eval注入。最新版本的so已经支持eval了
+6. 增加订阅码自定义排序功能
+
+### 20241219
+
+更新至V1.0.15
+
+1. drpyS源增加可使用的函数`Buffer` `URLSearchParams`
+2. 所有html页面头部加入drpyS-前缀
+3. 新增番薯源
+4. 新增几个订阅码
+
+### 20241218
+
+更新至V1.0.14
+
+1. 增加drpyS源属性说明文档
+2. 增加一些源
+3. 增加dockerFile
+4. 兼容vercel由于找不到readme.md无法生成主页的问题
+5. 调整vip解密功能兼容vercel
+
 ### 20241217
 
 更新至V1.0.13
