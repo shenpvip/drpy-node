@@ -1,11 +1,46 @@
 {
-  "sites_count": 36,
+  "sites_count": 37,
   "sites": [
     {
-      "key": "drpyS_哔哩直播[官]",
-      "name": "哔哩直播[官](DS)",
+      "key": "drpyS_设置中心",
+      "name": "设置中心(DS)",
       "type": 4,
-      "api": "http://localhost:5757/api/哔哩直播[官]",
+      "api": "http://localhost:5757/api/设置中心",
+      "searchable": 0,
+      "filterable": 0,
+      "quickSearch": 0,
+      "more": {
+        "sourceTag": "设置,动作",
+        "actions": [
+          {
+            "name": "连续对话",
+            "action": "{\"actionId\":\"连续对话\",\"id\":\"talk\",\"type\":\"input\",\"title\":\"连续对话\",\"tip\":\"请输入消息\",\"value\":\"\",\"msg\":\"开始新的对话\",\"button\":3,\"imageUrl\":\"https://img2.baidu.com/it/u=1206278833,3265480730&fm=253&fmt=auto&app=120&f=JPEG?w=800&h=800\",\"imageHeight\":200,\"imageType\":\"card_pic_3\",\"keep\":true}"
+          },
+          {
+            "name": "查看夸克cookie",
+            "action": "查看夸克cookie"
+          },
+          {
+            "name": "设置夸克cookie",
+            "action": "设置夸克cookie"
+          },
+          {
+            "name": "夸克扫码",
+            "action": "夸克扫码"
+          },
+          {
+            "name": "设置玩偶域名",
+            "action": "{\"actionId\":\"玩偶域名\",\"id\":\"domain\",\"type\":\"input\",\"width\":450,\"title\":\"玩偶域名\",\"tip\":\"请输入玩偶域名\",\"value\":\"\",\"msg\":\"选择或输入使用的域名\",\"selectData\":\"1:=https://www.wogg.net/,2:=https://wogg.xxooo.cf/,3:=https://wogg.888484.xyz/,4:=https://www.wogg.bf/,5:=https://woggapi.333232.xyz/\"}"
+          }
+        ]
+      },
+      "ext": ""
+    },
+    {
+      "key": "drpyS_番茄小说[书]",
+      "name": "番茄小说[书](DS)",
+      "type": 4,
+      "api": "http://localhost:5757/api/番茄小说[书]",
       "searchable": 2,
       "filterable": 1,
       "quickSearch": 0,
@@ -18,6 +53,36 @@
       "api": "http://localhost:5757/api/大象影视",
       "searchable": 2,
       "filterable": 0,
+      "quickSearch": 0,
+      "ext": ""
+    },
+    {
+      "key": "drpyS_腾云驾雾[官]",
+      "name": "腾云驾雾[官](DS)",
+      "type": 4,
+      "api": "http://localhost:5757/api/腾云驾雾[官]",
+      "searchable": 2,
+      "filterable": 1,
+      "quickSearch": 0,
+      "ext": ""
+    },
+    {
+      "key": "drpyS_央视大全[官]",
+      "name": "央视大全[官](DS)",
+      "type": 4,
+      "api": "http://localhost:5757/api/央视大全[官]",
+      "searchable": 1,
+      "filterable": 1,
+      "quickSearch": 0,
+      "ext": ""
+    },
+    {
+      "key": "drpyS_哔哩直播[官]",
+      "name": "哔哩直播[官](DS)",
+      "type": 4,
+      "api": "http://localhost:5757/api/哔哩直播[官]",
+      "searchable": 2,
+      "filterable": 1,
       "quickSearch": 0,
       "ext": ""
     },
@@ -42,11 +107,11 @@
       "ext": ""
     },
     {
-      "key": "drpyS_番茄小说[书]",
-      "name": "番茄小说[书](DS)",
+      "key": "drpyS_多多[盘]",
+      "name": "多多[盘](DS)",
       "type": 4,
-      "api": "http://localhost:5757/api/番茄小说[书]",
-      "searchable": 2,
+      "api": "http://localhost:5757/api/多多[盘]",
+      "searchable": 1,
       "filterable": 1,
       "quickSearch": 0,
       "ext": ""
@@ -182,30 +247,10 @@
       "ext": ""
     },
     {
-      "key": "drpyS_设置中心",
-      "name": "设置中心(DS)",
-      "type": 4,
-      "api": "http://localhost:5757/api/设置中心",
-      "searchable": 0,
-      "filterable": 0,
-      "quickSearch": 0,
-      "ext": ""
-    },
-    {
       "key": "drpyS_素白白",
       "name": "素白白(DS)",
       "type": 4,
       "api": "http://localhost:5757/api/素白白",
-      "searchable": 2,
-      "filterable": 1,
-      "quickSearch": 0,
-      "ext": ""
-    },
-    {
-      "key": "drpyS_腾云驾雾[官]",
-      "name": "腾云驾雾[官](DS)",
-      "type": 4,
-      "api": "http://localhost:5757/api/腾云驾雾[官]",
       "searchable": 2,
       "filterable": 1,
       "quickSearch": 0,
@@ -262,16 +307,6 @@
       "ext": ""
     },
     {
-      "key": "drpyS_央视大全[官]",
-      "name": "央视大全[官](DS)",
-      "type": 4,
-      "api": "http://localhost:5757/api/央视大全[官]",
-      "searchable": 1,
-      "filterable": 1,
-      "quickSearch": 0,
-      "ext": ""
-    },
-    {
       "key": "drpyS_伊甸园[密]",
       "name": "伊甸园[密](DS)",
       "type": 4,
@@ -292,10 +327,10 @@
       "ext": ""
     },
     {
-      "key": "drpyS_ACG漫画网",
-      "name": "ACG漫画网(DS)",
+      "key": "drpyS_ACG漫画网[画]",
+      "name": "ACG漫画网[画](DS)",
       "type": 4,
-      "api": "http://localhost:5757/api/ACG漫画网",
+      "api": "http://localhost:5757/api/ACG漫画网[画]",
       "searchable": 2,
       "filterable": 0,
       "quickSearch": 0,

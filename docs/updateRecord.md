@@ -1,5 +1,69 @@
 # drpyS更新记录
 
+### 20241230
+
+更新至V1.0.26
+
+1. 设置中心优化，样式适配装逼壳。并支持全局站源动作
+2. 增加简繁体转换函数 `simplecc`,用法如下:  
+   简体转繁体: `simplecc("发财了去植发", "s2t")`  
+   繁体转简体: `simplecc("發財了去植髮", "t2s")`
+3. 增加源相互调用功能,仅支持在源的特定函数里使用，示例:
+
+```javascript
+let {proxyUrl, getRule} = this;
+const tx_rule = await getRule('腾云驾雾[官]');
+if (tx_rule) {
+    log(tx_rule.url);
+    log(tx_rule.title);
+    // log(JSON.stringify(tx_rule));
+    let data1 = await tx_rule.callRuleFn('搜索', ['斗罗大陆'])
+    log(data1);
+    let data2 = await tx_rule.callRuleFn('一级', ['tv'])
+    log(data2);
+} else {
+    log('没有这个原')
+}
+```
+
+4. 增加讯飞星火AI对话交互动作,设置中心推荐栏可用。 源里可使用这个对象 `SparkAI`,调用示例:
+```javascript
+const sparkAI = new SparkAI({
+                    authKey: ENV.get('spark_ai_authKey'), 
+                    baseURL: 'https://spark-api-open.xf-yun.com',
+                });
+ rule.askLock = 1;
+ try {
+     replyContent = await sparkAI.ask(prompt, {temperature: 1.0});
+ } catch (error) {
+     replyContent = error.message;
+ }
+ rule.askLock = 0;
+```
+
+### 20241229
+
+更新至V1.0.25
+
+1. 优化设置中心在海阔的样式，增加推送功能支持推送海阔数据示例
+2. 优化 `push_agent.js` 增加默认图片，增加海阔推送数据识别
+3. 从 `api.js` 文件中抽离出 `mediaProxy.js` 逻辑
+4. 优化本地多线程流代理，尝试降低出现`403` 问题的频率
+5. batchFetch也尝试增加 连接数代理降低网站连接超出后自动拒绝的概率
+6. 后端 `httpUrl` 使用独立的 `_axios` 对象，避免跟系统内 `req` 所用对象冲突
+7. 完成设置中心所有平台扫码功能
+
+### 20241228
+
+更新至V1.0.24
+
+1. 本地代理支持多线程流代理，参考设置中心的本地代理测试。默认线程数为1，可以设置中心自行修改
+2. 至臻盘新增 `原代服` `原代本` 两种画质，可选择启用代理播放功能
+3. 更新了两个源
+4. 夸克扫描功能优化，支持取消扫码
+5. 设置中心图标优化，并支持推送番茄小说
+6. 默认排序文件改为 `order_common.example.html` `order_yellow.example.html` 允许用户自己新建不带example的文件避免跟仓库冲突
+
 ### 20241227
 
 更新至V1.0.23
