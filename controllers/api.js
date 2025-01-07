@@ -45,7 +45,16 @@ export default (fastify, options, done) => {
                     return proxyUrl
                 };
                 return {
-                    proxyUrl, publicUrl, jsonUrl, httpUrl, mediaProxyUrl, hostUrl, fServer, getProxyUrl, ext: moduleExt
+                    proxyUrl,
+                    publicUrl,
+                    jsonUrl,
+                    httpUrl,
+                    mediaProxyUrl,
+                    hostUrl,
+                    hostname,
+                    fServer,
+                    getProxyUrl,
+                    ext: moduleExt
                 }
             }
 
@@ -205,7 +214,17 @@ export default (fastify, options, done) => {
                 return proxyUrl
             };
             return {
-                proxyUrl, publicUrl, jsonUrl, httpUrl, mediaProxyUrl, hostUrl, fServer, getProxyUrl, ext: moduleExt
+                proxyUrl,
+                proxyPath,
+                publicUrl,
+                jsonUrl,
+                httpUrl,
+                mediaProxyUrl,
+                hostUrl,
+                hostname,
+                fServer,
+                getProxyUrl,
+                ext: moduleExt
             }
         }
 
@@ -301,7 +320,16 @@ export default (fastify, options, done) => {
                 return proxyUrl
             };
             return {
-                proxyUrl, publicUrl, jsonUrl, httpUrl, mediaProxyUrl, hostUrl, getProxyUrl, fServer, ext: moduleExt
+                proxyUrl,
+                publicUrl,
+                jsonUrl,
+                httpUrl,
+                mediaProxyUrl,
+                hostUrl,
+                hostname,
+                getProxyUrl,
+                fServer,
+                ext: moduleExt
             }
         }
 
