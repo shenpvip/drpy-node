@@ -1,5 +1,50 @@
 # drpyS更新记录
 
+### 20250109
+
+更新至V1.1.5
+
+1. `.env` 增加 `MAX_TASK`参数，配置系统多任务数限制，默认不设置则为2，解决低端设备如arm盒子访问配置崩溃问题。高端设备实测发现设置为8比较快
+2. 自建解析功能增强，支持自定义其他参数，增加两个示例解析
+3. 抓取了一些采集源扩充采王，抓取方式，zy3.7版本运行以下代码
+
+```javascript
+var rule = {
+    推荐: $js.toString(() => {
+        let url = 'https://blog.ilol.top/p/zqgwes.html';
+        let html = request(url);
+        let tlist = pdfa(html, '.post-content&&h2');
+        log(tlist)
+        let alist = pdfa(html, '.post-content&&a:gt(0)');
+        log(alist);
+
+        VODS = [];
+
+        for (let i in tlist) {
+            VODS.push({
+                name: pdfh(tlist[i], 'Text'),
+                url: pdfh(alist[i], 'a&&href'),
+            })
+        }
+        log(JSON.stringify(VODS))
+
+    })
+}
+```
+
+4. 增加源 `奇珍异兽[官].js`
+5. 新增一个源 `hdmoli.js` 用于演示二级同时存在播放列表和网盘分享链接的写法
+
+### 20250108
+
+更新至V1.1.4
+
+1. 修改 `fastify` 全局 `query` 解析行为，避免同一个参数出现多次被解析成列表，比如extend参数。
+2. 主页增加版权说明和免责申明
+3. 自然排序逻辑改成包含，用于支持模糊排序功能(v我50限定功能)
+4. 设置中心全局动作新增 `推送`
+5. ds源增加可用的全局函数 `batchExecute` 用法同海阔，配置生成逻辑改成 batchExecute 执行
+
 ### 20250107
 
 更新至V1.1.3
