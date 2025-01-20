@@ -4,6 +4,15 @@ export const validateBasicAuth = (request, reply, done) => {
         done();
         return
     }
+    if (request.url.startsWith('/config/')) {
+        let cf_path = request.url.slice(8).split('?')[0];
+        // console.log(cf_path);
+        if (!['index.js', 'index.js.md5', 'index.config.js', 'index.config.js.md5'].includes(cf_path)) {
+            done();
+            return
+        }
+        console.log(`[validateBasicAuth] 猫配置文件 ${cf_path} 进入鉴权`);
+    }
     // console.log('进入了basic验证');
     const authHeader = request.headers.authorization;
 
