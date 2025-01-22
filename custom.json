@@ -1,5 +1,5 @@
 {
-  "sites_count": 93,
+  "sites_count": 96,
   "sites": [
     {
       "key": "drpyS_设置中心",
@@ -284,21 +284,21 @@
       "ext": ""
     },
     {
-      "key": "drpyS_哔哩直播[官]",
-      "name": "哔哩直播[官](DS)",
-      "type": 4,
-      "api": "http://localhost:5757/api/哔哩直播[官]",
-      "searchable": 2,
-      "filterable": 1,
-      "quickSearch": 0,
-      "ext": ""
-    },
-    {
       "key": "drpyS_哔哩影视[官]",
       "name": "哔哩影视[官](DS)",
       "type": 4,
       "api": "http://localhost:5757/api/哔哩影视[官]",
       "searchable": 1,
+      "filterable": 1,
+      "quickSearch": 0,
+      "ext": ""
+    },
+    {
+      "key": "drpyS_哔哩直播[官]",
+      "name": "哔哩直播[官](DS)",
+      "type": 4,
+      "api": "http://localhost:5757/api/哔哩直播[官]",
+      "searchable": 2,
       "filterable": 1,
       "quickSearch": 0,
       "ext": ""
@@ -564,12 +564,32 @@
       "ext": ""
     },
     {
+      "key": "drpyS_短剧库",
+      "name": "短剧库(DS)",
+      "type": 4,
+      "api": "http://localhost:5757/api/短剧库",
+      "searchable": 2,
+      "filterable": 0,
+      "quickSearch": 0,
+      "ext": ""
+    },
+    {
       "key": "drpyS_番薯动漫[漫]",
       "name": "番薯动漫[漫](DS)",
       "type": 4,
       "api": "http://localhost:5757/api/番薯动漫[漫]",
       "searchable": 2,
       "filterable": 1,
+      "quickSearch": 0,
+      "ext": ""
+    },
+    {
+      "key": "drpyS_凡客TV",
+      "name": "凡客TV(DS)",
+      "type": 4,
+      "api": "http://localhost:5757/api/凡客TV",
+      "searchable": 2,
+      "filterable": 0,
       "quickSearch": 0,
       "ext": ""
     },
@@ -702,6 +722,16 @@
       "filterable": 0,
       "quickSearch": 0,
       "ext": "http://localhost:5757/js/六月听书[听].js"
+    },
+    {
+      "key": "drpyS_麦田影院",
+      "name": "麦田影院(DS)",
+      "type": 4,
+      "api": "http://localhost:5757/api/麦田影院",
+      "searchable": 2,
+      "filterable": 0,
+      "quickSearch": 0,
+      "ext": ""
     },
     {
       "key": "drpyS_美颜怪[擦]",
