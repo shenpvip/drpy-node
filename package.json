@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "build": "node index.js",
-    "dev": "node index.js",
+    "dev": "nodemon index.js",
     "dev-win": "chcp 65001 && node --trace-deprecation index.js",
     "pm2": "pm2 start index.js --name drpys",
     "package": "python package.py",
@@ -37,7 +37,9 @@
     "lru-cache": "^9.1.2",
     "mime-types": "^2.1.35",
     "minizlib": "^3.0.1",
+    "nodemon": "^3.1.9",
     "p-queue": "^8.0.1",
+    "puppeteer": "^24.1.1",
     "qs": "^6.13.1",
     "queue": "^7.0.0",
     "rotating-file-stream": "^3.2.5",
