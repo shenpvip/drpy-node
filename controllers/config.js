@@ -185,7 +185,11 @@ async function generateSiteJSON(options, requestHost, sub, pwd) {
             : `${requestHost}/js/${file}`
           let ext = isJs ? `${requestHost}/js/${file}` : ""
           if (pwd) {
-            ext += `?pwd=${pwd}`
+            if (isJs) {
+              ext += `?pwd=${pwd}`
+            } else {
+              api += `?pwd=${pwd}`
+            }
           }
           let ruleObject = {
             searchable: 0, // 固定值
