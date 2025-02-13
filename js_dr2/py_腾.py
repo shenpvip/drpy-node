@@ -331,7 +331,7 @@ class Spider(Spider):
         try:
             pdata = data['data']['module_list_datas'][-1]['module_datas'][-1]['item_data_lists']['item_datas']
             tabs = data['data']['module_list_datas'][-1]['module_datas'][-1]['module_params'].get('tabs')
-            if tabs:
+            if tabs and len(json.loads(tabs)):
                 tabs = json.loads(tabs)
                 remaining_tabs = tabs[1:]
                 task_queue = []
