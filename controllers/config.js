@@ -196,13 +196,15 @@ async function generateSiteJSON(options, requestHost, sub, pwd) {
             filterable: 0, // 固定值
             quickSearch: 0, // 固定值
           }
-          try {
-            // console.log('file:', path.join(dr2Dir, file));
-            ruleObject = await drpy.getRuleObject(path.join(dr2Dir, file))
-          } catch (e) {
-            throw new Error(
-              `Error parsing rule object for file: ${file}, ${e.message}`
-            )
+          if (isJs) {
+            try {
+              // console.log('file:', path.join(dr2Dir, file));
+              ruleObject = await drpy.getRuleObject(path.join(dr2Dir, file))
+            } catch (e) {
+              throw new Error(
+                `Error parsing rule object for file: ${file}, ${e.message}`
+              )
+            }
           }
 
           let fileSites = []
