@@ -1,3 +1,14 @@
+/**
+ * 配置管理控制器
+ *
+ * 主要功能：
+ * - 生成和管理drpy-node项目的配置文件
+ * - 支持多种源类型：DS源、DR2源、Python源、CatVod源
+ * - 提供配置订阅和健康检查功能
+ * - 生成解析器、直播源、播放器等配置
+ * - 处理配置文件的动态生成和缓存
+ */
+
 import {readdirSync, readFileSync, writeFileSync, existsSync} from 'fs';
 import {readFile} from 'fs/promises';
 import path from 'path';
@@ -15,6 +26,12 @@ import batchExecute from '../libs_drpy/batchExecute.js';
 
 const {jsEncoder} = drpyS;
 
+/**
+ * 解析扩展参数字符串
+ * 尝试将字符串解析为JSON对象或数组，如果解析失败则返回原字符串
+ * @param {string} str - 待解析的字符串
+ * @returns {any} 解析后的对象/数组或原字符串
+ */
 function parseExt(str) {
     try {
         const parsed = JSON.parse(str);
@@ -27,11 +44,34 @@ function parseExt(str) {
     return str;
 }
 
+/**
+ * 格式化扩展参数用于日志输出
+ * 将对象或数组转换为JSON字符串，其他类型直接返回
+ * @param {any} _ext - 扩展参数
+ * @returns {string} 格式化后的字符串
+ */
 function logExt(_ext) {
     return Array.isArray(_ext) || typeof _ext == "object" ? JSON.stringify(_ext) : _ext
 }
 
-// 工具函数：生成 JSON 数据
+/**
+ * 生成站点配置JSON数据
+ * 扫描各种类型的源文件并生成统一的配置格式
+ *
+ * @param {Object} options - 配置选项对象
+ * @param {string} options.jsDir - DS源文件目录
+ * @param {string} options.dr2Dir - DR2源文件目录
+ * @param {string} options.pyDir - Python源文件目录
+ * @param {string} options.catDir - CatVod源文件目录
+ * @param {string} options.configDir - 配置文件目录
+ * @param {string} options.jsonDir - JSON配置目录
+ * @param {string} options.subFilePath - 订阅文件路径
+ * @param {string} options.rootDir - 根目录路径
+ * @param {string} requestHost - 请求主机地址
+ * @param {Object|null} sub - 订阅配置对象
+ * @param {string} pwd - 访问密码
+ * @returns {Promise<Object>} 包含sites数组和spider配置的对象
+ */
 async function generateSiteJSON(options, requestHost, sub, pwd) {
     const jsDir = options.jsDir;
     const dr2Dir = options.dr2Dir;
@@ -45,17 +85,22 @@ async function generateSiteJSON(options, requestHost, sub, pwd) {
     const files = readdirSync(jsDir);
     let valid_files = files.filter((file) => file.endsWith('.js') && !file.startsWith('_')); // 筛选出不是 "_" 开头的 .js 文件
     let sort_list = [];
+    // 获取排序配置文件路径
     let sort_file = path.join(path.dirname(subFilePath), `./order_common.html`);
     if (!existsSync(sort_file)) {
         sort_file = path.join(path.dirname(subFilePath), `./order_common.example.html`);
     }
+    // 处理订阅过滤规则
     if (sub) {
         if (sub.mode === 0) {
+            // 包含模式：只保留匹配正则的文件
             valid_files = valid_files.filter(it => (new RegExp(sub.reg || '.*')).test(it));
         } else if (sub.mode === 1) {
+            // 排除模式：排除匹配正则的文件
             valid_files = valid_files.filter(it => !(new RegExp(sub.reg || '.*')).test(it));
         }
 
+        // 使用自定义排序文件
         if (sub.sort) {
             sort_file = path.join(path.dirname(subFilePath), `./${sub.sort}.html`);
             if (!existsSync(sort_file)) {
@@ -593,6 +638,14 @@ async function generateSiteJSON(options, requestHost, sub, pwd) {
     return {sites, spider: link_jar};
 }
 
+/**
+ * 生成解析器配置JSON数据
+ * 扫描解析器文件并生成解析器配置列表
+ *
+ * @param {string} jxDir - 解析器文件目录
+ * @param {string} requestHost - 请求主机地址
+ * @returns {Promise<Object>} 包含parses数组的对象
+ */
 async function generateParseJSON(jxDir, requestHost) {
     const files = readdirSync(jxDir);
     const jx_files = files.filter((file) => file.endsWith('.js') && !file.startsWith('_')) // 筛选出不是 "_" 开头的 .js 文件
@@ -671,6 +724,13 @@ async function generateParseJSON(jxDir, requestHost) {
     return {parses};
 }
 
+/**
+ * 生成直播源配置JSON数据
+ * 根据环境变量配置生成直播源列表
+ *
+ * @param {string} requestHost - 请求主机地址
+ * @returns {Object} 包含lives数组的对象
+ */
 function generateLivesJSON(requestHost) {
     let lives = [];
     let live_url = process.env.LIVE_URL || '';
@@ -697,6 +757,14 @@ function generateLivesJSON(requestHost) {
     return {lives}
 }
 
+/**
+ * 生成播放器配置JSON数据
+ * 读取播放器配置文件并返回配置对象
+ *
+ * @param {string} configDir - 配置文件目录
+ * @param {string} requestHost - 请求主机地址
+ * @returns {Object} 播放器配置对象
+ */
 function generatePlayerJSON(configDir, requestHost) {
     let playerConfig = {};
     let playerConfigPath = path.join(configDir, './player.json');
@@ -710,6 +778,13 @@ function generatePlayerJSON(configDir, requestHost) {
     return playerConfig
 }
 
+/**
+ * 获取订阅配置列表
+ * 读取订阅配置文件并解析为JSON对象
+ *
+ * @param {string} subFilePath - 订阅文件路径
+ * @returns {Array} 订阅配置数组
+ */
 function getSubs(subFilePath) {
     let subs = [];
     try {
@@ -721,8 +796,20 @@ function getSubs(subFilePath) {
     return subs
 }
 
+/**
+ * 配置管理路由注册函数
+ * 注册配置相关的API路由，包括配置获取和索引文件访问
+ *
+ * @param {Object} fastify - Fastify实例
+ * @param {Object} options - 配置选项
+ * @param {Function} done - 完成回调函数
+ */
 export default (fastify, options, done) => {
 
+    /**
+     * 获取索引配置接口
+     * 返回预生成的index.json配置文件内容
+     */
     fastify.get('/index', {preHandler: validatePwd}, async (request, reply) => {
         if (!existsSync(options.indexFilePath)) {
             reply.code(404).send({error: 'index.json not found'});
@@ -733,7 +820,11 @@ export default (fastify, options, done) => {
         reply.send(JSON.parse(content));
     });
 
-    // 接口：返回配置 JSON，同时写入 index.json
+    /**
+     * 动态配置生成接口
+     * 根据请求参数动态生成配置JSON，支持订阅过滤、健康检查等功能
+     * 同时将生成的配置写入index.json文件进行缓存
+     */
     fastify.get('/config*', {preHandler: [validatePwd, validateBasicAuth]}, async (request, reply) => {
         let t1 = (new Date()).getTime();
         const query = request.query; // 获取 query 参数
@@ -749,7 +840,9 @@ export default (fastify, options, done) => {
             const hostname = request.hostname;  // 主机名，不包含端口
             const port = request.socket.localPort;  // 获取当前服务的端口
             console.log(`cfg_path:${cfg_path},port:${port}`);
+            // 判断是否为外部访问（非本地访问）
             let not_local = cfg_path.startsWith('/1') || cfg_path.startsWith('/index');
+            // 根据访问类型生成对应的主机地址
             let requestHost = not_local ? `${protocol}://${hostname}` : `http://127.0.0.1:${options.PORT}`; // 动态生成根地址
             let requestUrl = not_local ? `${protocol}://${hostname}${request.url}` : `http://127.0.0.1:${options.PORT}${request.url}`; // 动态生成请求链接
             // console.log('requestUrl:', requestUrl);
@@ -831,11 +924,13 @@ export default (fastify, options, done) => {
             if (cfg_path.endsWith('.js.md5')) {
                 return handleJsMd5(cfg_path, requestUrl, options, reply);
             }
+            // 处理订阅码验证
             let sub = null;
             if (sub_code) {
                 let subs = getSubs(options.subFilePath);
                 sub = subs.find(it => it.code === sub_code);
                 console.log('sub:', sub);
+                // 检查订阅码状态
                 if (sub && sub.status === 0) {
                     return reply.status(500).send({error: `此订阅码:【${sub_code}】已禁用`});
                 } else if (!sub && must_sub_code) {
@@ -845,6 +940,7 @@ export default (fastify, options, done) => {
                 return reply.status(500).send({error: `缺少订阅码参数`});
             }
 
+            // 生成站点配置数据
             let siteJSON = await generateSiteJSON(options, requestHost, sub, pwd);
 
             // 处理healthy参数，过滤失效源
@@ -876,21 +972,25 @@ export default (fastify, options, done) => {
                 }
             }
 
+            // 生成各类配置数据
             const parseJSON = await generateParseJSON(options.jxDir, requestHost);
             const livesJSON = generateLivesJSON(requestHost);
             const playerJSON = generatePlayerJSON(options.configDir, requestHost);
+            // 合并所有配置数据
             const configObj = {sites_count: siteJSON.sites.length, ...playerJSON, ...siteJSON, ...parseJSON, ...livesJSON};
             if (!configObj.spider) {
                 configObj.spider = playerJSON.spider
             }
             // console.log(configObj);
             const configStr = JSON.stringify(configObj, null, 2);
+            // 写入配置文件（Vercel环境除外）
             if (!process.env.VERCEL) { // Vercel 环境不支持写文件，关闭此功能
                 writeFileSync(options.indexFilePath, configStr, 'utf8'); // 写入 index.json
                 if (cfg_path === '/1') {
                     writeFileSync(options.customFilePath, configStr, 'utf8'); // 写入 index.json
                 }
             }
+            // 计算处理耗时并返回结果
             let t2 = (new Date()).getTime();
             let cost = t2 - t1;
             // configObj.cost = cost;
