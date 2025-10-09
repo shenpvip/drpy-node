@@ -47,10 +47,19 @@ nodejs作为服务端的drpy实现。全面升级异步写法
 * [DS源适配猫影视](https://github.com/hjdhnx/CatPawOpen/tree/ds-cat)
 * [DS插件项目-golang](https://github.com/hjdhnx/drpy-plugin)
 * [DS 二进制插件项目-pup-sniffer](https://github.com/hjdhnx/pup-sniffer)
+* [DS 二进制插件项目-file-index](https://github.com/hjdhnx/file-index)
 * [DS web插件项目-drplayer](https://github.com/hjdhnx/DrPlayer)
 * [drpy2打包项目](https://github.com/hjdhnx/drpy-webpack)
 
 ## 更新记录
+
+### 20251008
+
+更新至V1.3.8
+
+### 20251007
+
+更新至V1.3.7
 
 ### 20250927
 
@@ -120,6 +129,7 @@ todo:
 ## 参考资料
 
 * [crypto-js-wasm使用教程](docs/crypto-js-wasm/readme-CN.md)
+* [webdav使用教程](docs/webdav.md)
 * [puppeteer使用教程](docs/pupInstall.md)
 * [drpyS源属性说明](docs/ruleAttr.md)
 * [drpy2写源简述](docs/ruleDesc.md)
